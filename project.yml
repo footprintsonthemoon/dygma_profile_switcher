@@ -1,0 +1,53 @@
+name: DygmaContextSwitcher
+options:
+  bundleIdPrefix: com.dygmacontext
+  deploymentTarget:
+    macOS: "13.0"
+  xcodeVersion: "15"
+  createIntermediateGroups: true
+
+packages:
+  ORSSerialPort:
+    url: https://github.com/armadsen/ORSSerialPort
+    from: 2.1.0
+
+targets:
+  DygmaContextSwitcher:
+    type: application
+    platform: macOS
+    deploymentTarget: "13.0"
+    info:
+      path: DygmaContextSwitcher/App/Info.plist
+      properties:
+        LSUIElement: true
+        LSMinimumSystemVersion: "13.0"
+        NSPrincipalClass: NSApplication
+    sources:
+      - path: DygmaContextSwitcher
+    dependencies:
+      - package: ORSSerialPort
+        product: ORSSerial
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.dygmacontext.DygmaContextSwitcher
+        MACOSX_DEPLOYMENT_TARGET: "13.0"
+        SWIFT_VERSION: "5.9"
+        ENABLE_HARDENED_RUNTIME: YES
+        CODE_SIGN_STYLE: Automatic
+        INFOPLIST_FILE: DygmaContextSwitcher/App/Info.plist
+        ONLY_ACTIVE_ARCH: NO
+
+  DygmaContextSwitcherTests:
+    type: bundle.unit-test
+    platform: macOS
+    deploymentTarget: "13.0"
+    sources:
+      - path: DygmaContextSwitcherTests
+    dependencies:
+      - target: DygmaContextSwitcher
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.dygmacontext.DygmaContextSwitcherTests
+        MACOSX_DEPLOYMENT_TARGET: "13.0"
+        SWIFT_VERSION: "5.9"
+        GENERATE_INFOPLIST_FILE: YES

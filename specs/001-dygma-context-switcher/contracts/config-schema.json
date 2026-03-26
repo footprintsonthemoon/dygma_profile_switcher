@@ -1,0 +1,234 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dygma-context-config",
+  "title": "DygmaContext Configuration",
+  "description": "Configuration file for the Dygma Context Switcher macOS app. Location: ~/Library/Application Support/DygmaContext/config.json",
+  "type": "object",
+  "required": ["version", "device", "defaults", "mappings", "fallback", "runtime", "logging"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "integer",
+      "const": 1,
+      "description": "Config schema version. Used for forward migration."
+    },
+    "device": {
+      "type": "object",
+      "required": ["mode", "autoDetect", "serial"],
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["usb", "wireless", "bluetooth"],
+          "description": "Connection mode. Only 'usb' is supported in v1."
+        },
+        "autoDetect": {
+          "type": "boolean",
+          "default": true,
+          "description": "When true, the app probes available serial ports to find the keyboard automatically."
+        },
+        "serial": {
+          "type": "object",
+          "required": ["baudRate"],
+          "additionalProperties": false,
+          "properties": {
+            "portPath": {
+              "type": ["string", "null"],
+              "default": null,
+              "description": "Cached serial port path (e.g. /dev/cu.usbmodem8301). Null when autoDetect is true and no port has been found yet."
+            },
+            "baudRate": {
+              "type": "integer",
+              "default": 115200,
+              "minimum": 1,
+              "description": "Serial baud rate. Standard Dygma value is 115200."
+            }
+          }
+        }
+      }
+    },
+    "defaults": {
+      "type": "object",
+      "required": ["debounceMs"],
+      "additionalProperties": false,
+      "description": "Default keyboard profile applied when the active app has no matching mapping. Only specified fields are applied.",
+      "properties": {
+        "layer": {
+          "type": ["integer", "null"],
+          "minimum": 0,
+          "maximum": 9,
+          "default": 0
+        },
+        "ledTheme": {
+          "type": ["string", "null"],
+          "default": null,
+          "description": "Opaque theme name passed through to Focus API. Not validated by this app."
+        },
+        "ledBrightness": {
+          "type": ["integer", "null"],
+          "default": null,
+          "description": "LED brightness value. Range is firmware-defined; not validated in v1."
+        },
+        "debounceMs": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 150,
+          "description": "Milliseconds to wait after an app activation event before applying the profile (debounce window)."
+        }
+      }
+    },
+    "mappings": {
+      "type": "array",
+      "default": [],
+      "description": "List of app-to-profile mappings. Matched at runtime by bundleIdentifier.",
+      "items": {
+        "type": "object",
+        "required": ["bundleIdentifier", "displayName", "profile"],
+        "additionalProperties": false,
+        "properties": {
+          "bundleIdentifier": {
+            "type": "string",
+            "minLength": 1,
+            "description": "macOS app bundle identifier used for matching (e.g. com.steinberg.dorico5). Stable across app updates and locale changes."
+          },
+          "displayName": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Human-readable app name for display in the UI. Captured automatically by the app picker."
+          },
+          "profile": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "Keyboard profile to apply when this app is active. Only specified fields are applied (non-destructive partial apply).",
+            "properties": {
+              "layer": {
+                "type": ["integer", "null"],
+                "minimum": 0,
+                "maximum": 9
+              },
+              "ledTheme": {
+                "type": ["string", "null"],
+                "description": "Opaque theme name. Not validated by this app."
+              },
+              "ledBrightness": {
+                "type": ["integer", "null"],
+                "description": "LED brightness. Range is firmware-defined."
+              }
+            }
+          }
+        }
+      }
+    },
+    "fallback": {
+      "type": "object",
+      "required": ["enabled"],
+      "additionalProperties": false,
+      "description": "HID shortcut fallback configuration (v2 feature; must be disabled in v1).",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "const": false,
+          "description": "Must be false in v1."
+        },
+        "type": {
+          "type": ["string", "null"],
+          "default": null
+        },
+        "shortcutMap": {
+          "type": ["object", "null"],
+          "default": null,
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "required": ["enabled", "closePortWhenDisabled"],
+      "additionalProperties": false,
+      "description": "Runtime preferences persisted across launches.",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether layer switching is active. Controlled via the menu bar toggle."
+        },
+        "closePortWhenDisabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "When true, the serial port is released when switching is disabled, allowing Bazecor to connect."
+        }
+      }
+    },
+    "logging": {
+      "type": "object",
+      "required": ["level"],
+      "additionalProperties": false,
+      "properties": {
+        "level": {
+          "type": "string",
+          "enum": ["debug", "info", "warning", "error"],
+          "default": "info"
+        },
+        "path": {
+          "type": "string",
+          "default": "~/Library/Logs/DygmaContext/",
+          "description": "Log directory. Tilde is expanded at runtime. Never hardcoded."
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "version": 1,
+      "device": {
+        "mode": "usb",
+        "autoDetect": true,
+        "serial": {
+          "portPath": "/dev/cu.usbmodem8301",
+          "baudRate": 115200
+        }
+      },
+      "defaults": {
+        "layer": 0,
+        "ledTheme": null,
+        "ledBrightness": null,
+        "debounceMs": 150
+      },
+      "mappings": [
+        {
+          "bundleIdentifier": "com.steinberg.dorico5",
+          "displayName": "Dorico 6",
+          "profile": {
+            "layer": 2,
+            "ledTheme": null,
+            "ledBrightness": 140
+          }
+        },
+        {
+          "bundleIdentifier": "com.apple.Terminal",
+          "displayName": "Terminal",
+          "profile": {
+            "layer": 3,
+            "ledTheme": null,
+            "ledBrightness": 90
+          }
+        }
+      ],
+      "fallback": {
+        "enabled": false,
+        "type": null,
+        "shortcutMap": null
+      },
+      "runtime": {
+        "enabled": true,
+        "closePortWhenDisabled": true
+      },
+      "logging": {
+        "level": "info",
+        "path": "~/Library/Logs/DygmaContext/"
+      }
+    }
+  ]
+}
