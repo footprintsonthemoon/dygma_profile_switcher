@@ -140,6 +140,47 @@ Located at `~/Library/Application Support/DygmaContext/config.json`. Human-reada
 
 ---
 
+## Tests
+
+### Running the tests
+
+```bash
+make test
+```
+
+All 25 tests should pass with no failures.
+
+### Test suites
+
+| Suite | Tests | What is covered |
+|---|---|---|
+| `ConfigStoreTests` | 6 | Load from missing file returns defaults; save/load roundtrip; corrupt JSON falls back to defaults; out-of-range layer rejected on load; all-nil mapping profile rejected; config path never contains unexpanded `~` |
+| `MappingLookupTests` | 8 | Bundle ID hit returns correct layer and brightness; miss returns default layer and brightness; idempotency skip when same layer already active; idempotency not triggered on different layer; partial mapping (layer only) falls back to default brightness; `recordApplied` updates cache; `resetCache` clears state; nil layer in mapping stays nil |
+| `FocusAPIClientTests` | 7 | Focus API command string format; probe response detection (`layer.moveTo` marker); response terminator parsing (`\n.\n`); `ERR_` prefix detection; partial apply only sends non-nil fields; backoff sequence correctness (1→2→4→8→16→30); `MockSerialPort` records sent data, throws when busy, throws when not open |
+| `AppEventMonitorTests` | 4 | Rapid events within debounce window produce exactly one callback for the last app; single event after debounce fires correctly; bundle ID extracted correctly from notification |
+
+### Coverage
+
+The test suite covers the **core logic layer** — the components that have no UI or hardware dependency and can be tested deterministically:
+
+| Layer | Approach | Source lines |
+|---|---|---|
+| Config (load/save/validate) | Unit tests with temp files | ~102 |
+| Mapping lookup + idempotency | Unit tests, pure logic | ~56 |
+| Focus API protocol + parsing | Unit tests with `MockSerialPort` | ~61 |
+| App event debounce | Unit tests with synthetic `NSWorkspace` notifications | ~59 |
+| **Tested subtotal** | | **~278 lines** |
+| Serial hardware (`SerialPortActor`, `DeviceDiscovery`) | Not tested — requires physical USB device | ~274 lines |
+| UI (`SwiftUI` views, `MenuBarController`) | Not tested — requires running app | ~793 lines |
+| Orchestration (`ProfileSwitcher`, `AppDelegate`) | Not tested — integration concerns | ~229 lines |
+| **Total source** | | **~1,828 lines** |
+
+**Unit test coverage: ~15% of total lines, ~100% of testable pure-logic code.**
+
+The untested layers (serial hardware, UI, orchestration) are validated manually via the running app. Hardware-dependent code cannot be usefully unit-tested without a physical Dygma Defy connected.
+
+---
+
 ## Building from Source
 
 ### Prerequisites

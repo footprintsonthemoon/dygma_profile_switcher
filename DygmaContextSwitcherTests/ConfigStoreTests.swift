@@ -27,7 +27,7 @@ final class ConfigStoreTests: XCTestCase {
         XCTAssertEqual(store.config.version, 1)
         XCTAssertEqual(store.config.defaults.debounceMs, 150)
         XCTAssertTrue(store.config.mappings.isEmpty)
-        XCTAssertEqual(store.config.device.mode, .usb)
+        XCTAssertTrue(store.config.device.autoDetect)
     }
 
     func testSaveAndLoadRoundtrip() throws {

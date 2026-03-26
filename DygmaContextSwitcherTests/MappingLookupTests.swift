@@ -51,7 +51,8 @@ final class MappingLookupTests: XCTestCase {
     func testPartialProfileLayerOnly() {
         let result = lookup.resolve(bundleId: "com.apple.Terminal", mappings: mappings, defaults: defaults)
         XCTAssertEqual(result.layer, 3)
-        XCTAssertNil(result.ledBrightness, "Terminal mapping has no brightness — should be nil")
+        // No brightness in mapping — falls back to defaults.ledBrightness (100)
+        XCTAssertEqual(result.ledBrightness, 100, "Partial mapping brightness should fall back to defaults")
     }
 
     func testRecordAppliedUpdatesCache() {
