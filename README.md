@@ -192,7 +192,7 @@ The untested layers (serial hardware, UI, orchestration) are validated manually 
 ### Clone and build
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/dygma-context-switcher.git
+git clone https://github.com/footprintsonthemoon/dygma-context-switcher.git
 cd dygma-context-switcher
 make build
 ```
